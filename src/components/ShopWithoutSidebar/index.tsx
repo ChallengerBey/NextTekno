@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Breadcrumb from "../Common/Breadcrumb";
 
 import SingleGridItem from "../Shop/SingleGridItem";
@@ -7,9 +7,21 @@ import SingleListItem from "../Shop/SingleListItem";
 import CustomSelect from "../ShopWithSidebar/CustomSelect";
 
 import shopData from "../Shop/shopData";
+import { useAdmin } from "@/app/context/AdminContext";
+import { useSearchParams } from "next/navigation";
+import { filterProducts } from "@/lib/productSearch";
 
 const ShopWithoutSidebar = () => {
   const [productStyle, setProductStyle] = useState("grid");
+  const { products } = useAdmin();
+  const productList = products.length > 0 ? products : shopData;
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") ?? "";
+  const category = searchParams.get("category") ?? "all";
+  const filteredProducts = useMemo(
+    () => filterProducts(productList, searchQuery, category),
+    [productList, searchQuery, category]
+  );
 
   const options = [
     { label: "En Yeniler", value: "0" },
@@ -126,7 +138,7 @@ const ShopWithoutSidebar = () => {
                     : "flex flex-col gap-7.5"
                   }`}
               >
-                {shopData.map((item, key) =>
+                {filteredProducts.map((item, key) =>
                   productStyle === "grid" ? (
                     <SingleGridItem item={item} key={key} />
                   ) : (

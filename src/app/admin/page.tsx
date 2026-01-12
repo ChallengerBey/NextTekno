@@ -6,7 +6,7 @@ export default function AdminDashboardPage() {
     const { orders } = useAdmin();
 
     const totalRevenue = orders.reduce((acc, order) => {
-        const price = parseFloat(order.total.replace("$", ""));
+        const price = parseFloat(order.total.replace("?", ""));
         return acc + price;
     }, 0);
 
@@ -21,7 +21,7 @@ export default function AdminDashboardPage() {
                     <div className="mt-4 flex items-end justify-between">
                         <div>
                             <h4 className="text-title-md font-bold text-black dark:text-white">
-                                ${totalRevenue.toFixed(2)}
+                                ?{totalRevenue.toFixed(2)}
                             </h4>
                             <span className="text-sm font-medium">Toplam Gelir</span>
                         </div>

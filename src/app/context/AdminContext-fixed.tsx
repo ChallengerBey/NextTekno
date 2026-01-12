@@ -25,7 +25,7 @@ interface AdminContextType {
     products: Product[];
     addProduct: (product: Product) => Promise<void>;
     updateProduct: (product: Product) => Promise<void>;
-    deleteProduct: (productId: number | string) => Promise<void>;
+    deleteProduct: (productId: string) => Promise<void>;
     isLoading: boolean;
     refreshData: () => Promise<void>;
 }
@@ -38,9 +38,6 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const hasSeededProducts = useRef(false);
-
-    // Admin/Seller email - her kullanıcının kendi ürünlerini yönetmesi için
-    const [sellerEmail, setSellerEmail] = useState<string>("");
 
     const guessCategory = (title: string) => {
         const normalized = title.toLowerCase();
@@ -71,13 +68,46 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (productsData) {
+            if (productsData && productsData.length > 0) {
                 const mappedProducts = productsData.map(p => ({
                     ...p,
-                    category: guessCategory(p.title),
+                    category: p.category ?? "General",
                     imgs: typeof p.imgs === 'string' ? JSON.parse(p.imgs) : p.imgs
                 }));
                 setProducts(mappedProducts);
+            } else if (!hasSeededProducts.current) {
+                hasSeededProducts.current = true;
+                try {
+                    const seedProducts = shopData.map((product) => ({
+                        title: product.title,
+                        price: product.price,
+                        discountedPrice: product.discountedPrice ?? null,
+                        reviews: product.reviews ?? 0,
+                        imgs: product.imgs ?? null
+                    }));
+
+                    const { error: seedError } = await supabase
+                        .from('products')
+                        .insert(seedProducts);
+
+                    if (seedError) throw seedError;
+
+                    const { data: seededProducts } = await supabase
+                        .from('products')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (seededProducts) {
+                        const mappedProducts = seededProducts.map(p => ({
+                            ...p,
+                            category: guessCategory(p.title),
+                            imgs: typeof p.imgs === 'string' ? JSON.parse(p.imgs) : p.imgs
+                        }));
+                        setProducts(mappedProducts);
+                    }
+                } catch (seedError) {
+                    console.error("Seed products error:", seedError);
+                }
             } else {
                 setProducts([]);
             }
@@ -89,9 +119,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     // Initialize data
     useEffect(() => {
         const storedAuth = localStorage.getItem("adminLoggedIn");
-        const storedEmail = localStorage.getItem("adminEmail") || "admin@nexttekno.com";
         if (storedAuth === "true") setIsLoggedIn(true);
-        setSellerEmail(storedEmail);
 
         // Initial fetch
         refreshData().finally(() => setIsLoading(false));
@@ -121,10 +149,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     const login = (password: string) => {
         if (password === "admin123") {
             setIsLoggedIn(true);
-            const email = "admin@nexttekno.com"; // Gerçek auth sisteminde burası dinamik olacak
-            setSellerEmail(email);
             localStorage.setItem("adminLoggedIn", "true");
-            localStorage.setItem("adminEmail", email);
             return true;
         }
         return false;
@@ -132,9 +157,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
     const logout = () => {
         setIsLoggedIn(false);
-        setSellerEmail("");
         localStorage.removeItem("adminLoggedIn");
-        localStorage.removeItem("adminEmail");
     };
 
     const addOrder = async (order: Order) => {
@@ -145,6 +168,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
             if (error) throw error;
 
+            // Optimistic update or wait for realtime
             setOrders(prev => [order, ...prev]);
         } catch (error) {
             console.error("Order add error", error);
@@ -154,14 +178,13 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
 
     const addProduct = async (product: Product) => {
         try {
-            // Only use columns that exist in database + seller_id
+            // Only use columns that exist in database
             const dbProduct = {
                 title: product.title,
                 price: product.price,
                 discountedPrice: product.discountedPrice ?? null,
                 reviews: product.reviews ?? 0,
-                imgs: product.imgs,
-                seller_id: sellerEmail // Ürünü ekleyen kullanıcının email'i
+                imgs: product.imgs
             };
 
             console.log("Supabase Insert Attempt:", dbProduct);
@@ -191,15 +214,13 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
                 title: product.title,
                 price: product.price,
                 discountedPrice: product.discountedPrice ?? null,
-                imgs: product.imgs
+                imgs: product.imgs ?? null
             };
 
-            // Sadece kendi ürününü güncelleyebilsin
             const { error } = await supabase
                 .from('products')
                 .update(dbProduct)
-                .eq('id', product.id)
-                .eq('seller_id', sellerEmail); // Sadece kendi ürünü
+                .eq('id', product.id);
 
             if (error) {
                 toast.error("Veritabanı hatası: " + error.message);
@@ -214,52 +235,23 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const deleteProduct = async (productId: number | string) => {
+    const deleteProduct = async (productId: string) => {
         try {
-            console.log("Deleting product with ID:", productId, "for seller:", sellerEmail);
-
-            // Sadece kendi A?rA?nA?nA? silebilsin - hem id hem de seller_id kontrolA?
-            const baseQuery = supabase
+            const { error } = await supabase
                 .from('products')
                 .delete()
                 .eq('id', productId);
 
-            const { data, error } = sellerEmail
-                ? await baseQuery.eq('seller_id', sellerEmail).select() // A-NEML??: Sadece kendi A?rA?nA? silinir!
-                : await baseQuery.select();
-
-            console.log("Delete result:", { data, error });
-
             if (error) {
-                console.error("Supabase delete error:", error);
-                toast.error("Veritaban?? hatas??: " + error.message);
+                toast.error("Veritabanı hatası: " + error.message);
                 throw error;
             }
 
-            if (data && data.length === 0) {
-                const { data: fallbackData, error: fallbackError } = await supabase
-                    .from('products')
-                    .delete()
-                    .eq('id', productId)
-                    .select();
-
-                if (fallbackError) {
-                    console.error("Supabase delete fallback error:", fallbackError);
-                    toast.error("Veritaban?? hatas??: " + fallbackError.message);
-                    throw fallbackError;
-                }
-
-                if (!fallbackData || fallbackData.length === 0) {
-                    toast.error("AorA?n bulunamad?? veya size ait de?Yil!");
-                    return;
-                }
-            }
-
-            toast.success("AorA?n ba?Yar??yla silindi!");
+            toast.success("Ürün başarıyla silindi!");
             refreshData();
         } catch (error: any) {
             console.error("Product delete error:", error);
-            toast.error("Hata: " + (error.message || "Bilinmeyen hata olu?Ytu"));
+            toast.error("Hata: " + (error.message || "Bilinmeyen hata oluştu"));
         }
     };
 

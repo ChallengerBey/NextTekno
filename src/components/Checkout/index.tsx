@@ -113,7 +113,7 @@ const Checkout = () => {
                 <div className="bg-white shadow-1 rounded-[10px]">
                   {/* ... Sepet Özeti Kodların Buraya Gelecek (Aynı Kalabilir) ... */}
                   <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-                    <h3 className="font-medium text-xl text-dark">Toplam: ${finalTotal.toFixed(2)}</h3>
+                    <h3 className="font-medium text-xl text-dark">Toplam: ?{finalTotal.toFixed(2)}</h3>
                   </div>
                 </div>
 

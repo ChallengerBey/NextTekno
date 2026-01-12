@@ -1,6 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import shopData from "@/components/Shop/shopData";
+import toast from "react-hot-toast";
 
 // Types
 export interface Order {
@@ -22,6 +23,7 @@ interface AdminContextType {
     addOrder: (order: Order) => void;
     products: Product[];
     addProduct: (product: Product) => void;
+    updateProduct: (product: Product) => void;
     isLoading: boolean;
 }
 
@@ -44,8 +46,8 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         } else {
             // Default dummy orders for demo
             const defaultOrders: Order[] = [
-                { id: "#1001", customer: "Ahmet Yılmaz", date: new Date().toLocaleDateString(), status: "Tamamlandı", total: "$120.00" },
-                { id: "#1002", customer: "Ayşe Demir", date: new Date().toLocaleDateString(), status: "Beklemede", total: "$45.00" },
+                { id: "#1001", customer: "Ahmet Yılmaz", date: new Date().toLocaleDateString(), status: "Tamamlandı", total: "?120.00" },
+                { id: "#1002", customer: "Ayşe Demir", date: new Date().toLocaleDateString(), status: "Beklemede", total: "?45.00" },
             ];
             setOrders(defaultOrders);
             localStorage.setItem("orders", JSON.stringify(defaultOrders));
@@ -88,10 +90,20 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         const updatedProducts = [product, ...products];
         setProducts(updatedProducts);
         localStorage.setItem("products", JSON.stringify(updatedProducts));
+        toast.success("Ürün başarıyla eklendi!");
+    };
+
+    const updateProduct = (updatedProduct: Product) => {
+        const updatedProducts = products.map((product) =>
+            product.id === updatedProduct.id ? updatedProduct : product
+        );
+        setProducts(updatedProducts);
+        localStorage.setItem("products", JSON.stringify(updatedProducts));
+        toast.success("Ürün başarıyla güncellendi!");
     };
 
     return (
-        <AdminContext.Provider value={{ isLoggedIn, login, logout, orders, addOrder, products, addProduct, isLoading }}>
+        <AdminContext.Provider value={{ isLoggedIn, login, logout, orders, addOrder, products, addProduct, updateProduct, isLoading }}>
             {children}
         </AdminContext.Provider>
     );

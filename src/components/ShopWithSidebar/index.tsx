@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Breadcrumb from "../Common/Breadcrumb";
 import CustomSelect from "./CustomSelect";
 import CategoryDropdown from "./CategoryDropdown";
@@ -10,11 +10,23 @@ import PriceDropdown from "./PriceDropdown";
 import shopData from "../Shop/shopData";
 import SingleGridItem from "../Shop/SingleGridItem";
 import SingleListItem from "../Shop/SingleListItem";
+import { useAdmin } from "@/app/context/AdminContext";
+import { useSearchParams } from "next/navigation";
+import { filterProducts } from "@/lib/productSearch";
 
 const ShopWithSidebar = () => {
   const [productStyle, setProductStyle] = useState("grid");
   const [productSidebar, setProductSidebar] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
+  const { products } = useAdmin();
+  const productList = products.length > 0 ? products : shopData;
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") ?? "";
+  const category = searchParams.get("category") ?? "all";
+  const filteredProducts = useMemo(
+    () => filterProducts(productList, searchQuery, category),
+    [productList, searchQuery, category]
+  );
 
   const handleStickyMenu = () => {
     if (window.scrollY >= 80) {
@@ -273,7 +285,7 @@ const ShopWithSidebar = () => {
                     : "flex flex-col gap-7.5"
                   }`}
               >
-                {shopData.map((item, key) =>
+                {filteredProducts.map((item, key) =>
                   productStyle === "grid" ? (
                     <SingleGridItem item={item} key={key} />
                   ) : (

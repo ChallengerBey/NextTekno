@@ -11,18 +11,13 @@ const AddProductPage = () => {
         price: "",
         discountedPrice: "",
     });
-    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const files = Array.from(e.target.files);
-            setImageFiles(prev => [...prev, ...files]);
+        if (e.target.files && e.target.files[0]) {
+            setImageFile(e.target.files[0]);
         }
-    };
-
-    const removeImage = (index: number) => {
-        setImageFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -38,40 +33,36 @@ const AddProductPage = () => {
             return;
         }
 
-        let imageUrls: string[] = [];
+        let imageUrl = "/images/products/product-01.png"; // Default fallback
 
-        if (imageFiles.length > 0) {
+        if (imageFile) {
             setUploading(true);
             try {
-                for (const file of imageFiles) {
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-                    const filePath = `${fileName}`;
+                const fileExt = imageFile.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+                const filePath = `${fileName}`;
 
-                    const { error: uploadError } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
+                    .from('products')
+                    .upload(filePath, imageFile);
+
+                if (uploadError) {
+                    console.error("Storage upload error:", uploadError);
+                    toast.error("Görsel yüklenirken hata oluştu! Varsayılan görsel kullanılacak.");
+                } else {
+                    // Get Public URL
+                    const { data } = supabase.storage
                         .from('products')
-                        .upload(filePath, file);
+                        .getPublicUrl(filePath);
 
-                    if (uploadError) {
-                        console.error("Storage upload error:", uploadError);
-                        toast.error(`${file.name} yüklenirken hata oluştu!`);
-                    } else {
-                        const { data } = supabase.storage
-                            .from('products')
-                            .getPublicUrl(filePath);
-                        imageUrls.push(data.publicUrl);
-                    }
+                    imageUrl = data.publicUrl;
+                    console.log("Image uploaded successfully:", imageUrl);
                 }
             } catch (error) {
                 console.error("Upload error:", error);
-                toast.error("Görseller yüklenirken hata oluştu!");
+                toast.error("Görsel yüklenirken hata oluştu! Varsayılan görsel kullanılacak.");
             }
             setUploading(false);
-        }
-
-        // Fallback if no images uploaded
-        if (imageUrls.length === 0) {
-            imageUrls = ["/images/products/product-01.png"];
         }
 
         const newProduct = {
@@ -80,8 +71,8 @@ const AddProductPage = () => {
             discountedPrice: formData.discountedPrice ? parseFloat(formData.discountedPrice) : null,
             reviews: 0,
             imgs: {
-                thumbnails: imageUrls,
-                previews: imageUrls,
+                thumbnails: [imageUrl, imageUrl, imageUrl],
+                previews: [imageUrl, imageUrl, imageUrl],
             }
         };
 
@@ -90,7 +81,7 @@ const AddProductPage = () => {
 
         // Reset form
         setFormData({ title: "", price: "", discountedPrice: "" });
-        setImageFiles([]);
+        setImageFile(null);
         
         // Reset file input
         const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -124,7 +115,7 @@ const AddProductPage = () => {
 
                             <div className="mb-4.5">
                                 <label className="mb-2.5 block text-black dark:text-white">
-                                    Fiyat (₺) <span className="text-meta-1">*</span>
+                                    Fiyat <span className="text-meta-1">*</span>
                                 </label>
                                 <input
                                     type="number"
@@ -137,7 +128,7 @@ const AddProductPage = () => {
 
                             <div className="mb-4.5">
                                 <label className="mb-2.5 block text-black dark:text-white">
-                                    İndirimli Fiyat (₺)
+                                    İndirimli Fiyat
                                 </label>
                                 <input
                                     type="number"
@@ -150,35 +141,16 @@ const AddProductPage = () => {
 
                             <div className="mb-4.5">
                                 <label className="mb-2.5 block text-black dark:text-white">
-                                    Ürün Görselleri
+                                    Ürün Görseli
                                 </label>
                                 <input
                                     type="file"
                                     accept="image/*"
-                                    multiple
                                     onChange={handleImageChange}
                                     className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary"
                                 />
-                                {imageFiles.length > 0 && (
-                                    <div className="mt-3">
-                                        <p className="text-sm text-green-500 mb-2">Seçilen görseller ({imageFiles.length}):</p>
-                                        <div className="space-y-2">
-                                            {imageFiles.map((file, index) => (
-                                                <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                                    <span className="text-sm">{file.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeImage(index)}
-                                                        className="text-red-500 hover:text-red-700 text-sm"
-                                                    >
-                                                        🗑️ Kaldır
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                <p className="text-xs text-gray-500 mt-1">Birden fazla görsel seçebilirsiniz. Görsel seçilmezse varsayılan görsel kullanılacaktır.</p>
+                                {imageFile && <p className="text-sm text-green-500 mt-1">Seçilen: {imageFile.name}</p>}
+                                <p className="text-xs text-gray-500 mt-1">Görsel seçilmezse varsayılan görsel kullanılacaktır.</p>
                             </div>
 
                             <button

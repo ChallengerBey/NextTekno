@@ -12,6 +12,44 @@ export const menuData: Menu[] = [
     title: "Mağaza",
     newTab: false,
     path: "/shop-with-sidebar",
+    submenu: [
+      {
+        id: 21,
+        title: "Televizyonlar",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+      {
+        id: 22,
+        title: "Dizüstü ve PC",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+      {
+        id: 23,
+        title: "Mobil ve Tabletler",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+      {
+        id: 24,
+        title: "Oyun ve Videolar",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+      {
+        id: 25,
+        title: "Ev Aletleri",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+      {
+        id: 26,
+        title: "Saatler",
+        newTab: false,
+        path: "/shop-with-sidebar",
+      },
+    ],
   },
   {
     id: 3,

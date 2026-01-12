@@ -270,7 +270,7 @@ const Footer = () => {
             </h2>
 
             <p className="lg:text-right text-custom-sm mb-4">
-              Uygulama ile ilk alışverişe özel 3$ indirim!
+              Uygulama ile ilk alışverişe özel ?3 indirim!
             </p>
 
             <ul className="flex flex-col lg:items-end gap-3">
@@ -340,7 +340,7 @@ const Footer = () => {
         <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex gap-5 flex-wrap items-center justify-between">
             <p className="text-dark font-medium">
-              &copy; {year}. Tüm hakları PimjoLabs'e aittir.
+              &copy; {year}. Tüm hakları Semih Ergili'ye aittir.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">

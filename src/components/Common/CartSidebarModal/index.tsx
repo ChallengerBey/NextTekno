@@ -94,7 +94,7 @@ const CartSidebarModal = () => {
             <div className="flex items-center justify-between gap-5 mb-6">
               <p className="font-medium text-xl text-dark">Ara Toplam:</p>
 
-              <p className="font-medium text-xl text-dark">${totalPrice}</p>
+              <p className="font-medium text-xl text-dark">{"\u20BA"}{totalPrice}</p>
             </div>
 
             <div className="flex items-center gap-4">

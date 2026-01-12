@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import CustomSelect from "./CustomSelect";
 import { menuData } from "./menuData";
@@ -9,12 +9,21 @@ import { useSelector } from "react-redux";
 import { selectTotalPrice } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAdmin } from "@/app/context/AdminContext";
+import shopData from "@/components/Shop/shopData";
+import { categoryOptions } from "@/lib/categories";
+import { filterProducts } from "@/lib/productSearch";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
   const { openCartModal } = useCartModalContext();
+  const router = useRouter();
+  const { products } = useAdmin();
+  const productList = products.length > 0 ? products : shopData;
 
   const product = useAppSelector((state) => state.cartReducer.items);
   const totalPrice = useSelector(selectTotalPrice);
@@ -36,16 +45,30 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyMenu);
   });
 
-  const options = [
-    { label: "Tüm Kategoriler", value: "0" },
-    { label: "Masaüstü", value: "1" },
-    { label: "Dizüstü", value: "2" },
-    { label: "Monitör", value: "3" },
-    { label: "Telefon", value: "4" },
-    { label: "Saat", value: "5" },
-    { label: "Fare", value: "6" },
-    { label: "Tablet", value: "7" },
-  ];
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return filterProducts(productList, searchQuery, selectedCategory).slice(0, 6);
+  }, [productList, searchQuery, selectedCategory]);
+
+  const buildSearchUrl = (queryValue: string) => {
+    const query = queryValue.trim();
+    const params = new URLSearchParams();
+
+    if (query) params.set("search", query);
+    if (selectedCategory && selectedCategory !== "all") {
+      params.set("category", selectedCategory);
+    }
+
+    const queryString = params.toString();
+    return `/shop-with-sidebar${queryString ? `?${queryString}` : ""}`;
+  };
+
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    router.push(buildSearchUrl(searchQuery));
+  };
+
+  const options = categoryOptions;
 
   return (
     <header
@@ -70,9 +93,13 @@ const Header = () => {
             </Link>
 
             <div className="max-w-[475px] w-full">
-              <form>
+              <form onSubmit={handleSearchSubmit}>
                 <div className="flex items-center">
-                  <CustomSelect options={options} />
+                  <CustomSelect
+                    options={options}
+                    value={selectedCategory}
+                    onChange={(option) => setSelectedCategory(option.value)}
+                  />
 
                   <div className="relative max-w-[333px] sm:min-w-[333px] w-full">
                     {/* <!-- divider --> */}
@@ -107,6 +134,33 @@ const Header = () => {
                         />
                       </svg>
                     </button>
+
+                    {searchQuery.trim() && (
+                      <div className="absolute left-0 top-full z-50 mt-2 w-full rounded-md border border-gray-3 bg-white p-2 shadow-1">
+                        {searchResults.length === 0 ? (
+                          <p className="px-2 py-2 text-sm text-gray-500">
+                            SonuA bulunamadŽñ.
+                          </p>
+                        ) : (
+                          <ul className="flex flex-col gap-1">
+                            {searchResults.map((item) => (
+                              <li key={item.id}>
+                                <button
+                                  type="button"
+                                  onClick={() => router.push(buildSearchUrl(item.title))}
+                                  className="flex w-full items-center justify-between rounded px-2 py-2 text-left text-sm hover:bg-gray-100"
+                                >
+                                  <span className="text-dark">{item.title}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {item.category ?? "General"}
+                                  </span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </form>
@@ -197,7 +251,7 @@ const Header = () => {
                       sepet
                     </span>
                     <p className="font-medium text-custom-sm text-dark">
-                      ${totalPrice}
+                      ?{totalPrice}
                     </p>
                   </div>
                 </button>
@@ -346,3 +400,4 @@ const Header = () => {
 };
 
 export default Header;
+

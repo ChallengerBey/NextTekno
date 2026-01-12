@@ -13,6 +13,9 @@ import Link from "next/link";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const previewImage = item.imgs?.previews?.[0] ?? "/images/products/product-01.png";
+  const displayPrice = item.discountedPrice ?? item.price;
+  const showComparePrice = item.discountedPrice != null;
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -48,7 +51,7 @@ const ProductItem = ({ item }: { item: Product }) => {
   return (
     <div className="group">
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-[#F6F7FB] min-h-[270px] mb-4">
-        <Image src={item.imgs.previews[0]} alt="" width={250} height={250} />
+        <Image src={previewImage} alt="" width={250} height={250} />
 
         <div className="absolute left-0 bottom-0 translate-y-full w-full flex items-center justify-center gap-2.5 pb-5 ease-linear duration-200 group-hover:translate-y-0">
           <button
@@ -160,8 +163,10 @@ const ProductItem = ({ item }: { item: Product }) => {
       </h3>
 
       <span className="flex items-center gap-2 font-medium text-lg">
-        <span className="text-dark">${item.discountedPrice}</span>
-        <span className="text-dark-4 line-through">${item.price}</span>
+        <span className="text-dark">{"\u20BA"}{displayPrice}</span>
+        {showComparePrice && (
+          <span className="text-dark-4 line-through">{"\u20BA"}{item.price}</span>
+        )}
       </span>
     </div>
   );
