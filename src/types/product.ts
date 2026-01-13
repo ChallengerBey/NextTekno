@@ -5,6 +5,7 @@ export type Product = {
   discountedPrice?: number | null;
   id: number;
   category?: string | null;
+  color?: string | null;
   imgs?: {
     thumbnails: string[];
     previews: string[];

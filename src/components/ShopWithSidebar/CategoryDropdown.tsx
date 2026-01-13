@@ -2,21 +2,23 @@
 
 import { useState } from "react";
 
-const CategoryItem = ({ category }) => {
-  const [selected, setSelected] = useState(false);
+const CategoryItem = ({ category, isSelected, onToggle }) => {
   return (
     <button
-      className={`${selected && "text-blue"
+      className={`${isSelected && "text-blue"
         } group flex items-center justify-between ease-out duration-200 hover:text-blue `}
-      onClick={() => setSelected(!selected)}
+      onClick={(e) => {
+        e.preventDefault();
+        onToggle(category.name);
+      }}
     >
       <div className="flex items-center gap-2">
         <div
-          className={`cursor-pointer flex items-center justify-center rounded w-4 h-4 border ${selected ? "border-blue bg-blue" : "bg-white border-gray-3"
+          className={`cursor-pointer flex items-center justify-center rounded w-4 h-4 border ${isSelected ? "border-blue bg-blue" : "bg-white border-gray-3"
             }`}
         >
           <svg
-            className={selected ? "block" : "hidden"}
+            className={isSelected ? "block" : "hidden"}
             width="10"
             height="10"
             viewBox="0 0 10 10"
@@ -37,7 +39,7 @@ const CategoryItem = ({ category }) => {
       </div>
 
       <span
-        className={`${selected ? "text-white bg-blue" : "bg-gray-2"
+        className={`${isSelected ? "text-white bg-blue" : "bg-gray-2"
           } inline-flex rounded-[30px] text-custom-xs px-2 ease-out duration-200 group-hover:text-white group-hover:bg-blue`}
       >
         {category.products}
@@ -46,7 +48,7 @@ const CategoryItem = ({ category }) => {
   );
 };
 
-const CategoryDropdown = ({ categories }) => {
+const CategoryDropdown = ({ categories, selectedCategories, onToggleCategory }) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
 
   return (
@@ -83,14 +85,17 @@ const CategoryDropdown = ({ categories }) => {
         </button>
       </div>
 
-      {/* dropdown && 'shadow-filter */}
-      {/* <!-- dropdown menu --> */}
       <div
         className={`flex-col gap-3 py-6 pl-6 pr-5.5 ${toggleDropdown ? "flex" : "hidden"
           }`}
       >
         {categories.map((category, key) => (
-          <CategoryItem key={key} category={category} />
+          <CategoryItem
+            key={key}
+            category={category}
+            isSelected={selectedCategories.includes(category.name)}
+            onToggle={onToggleCategory}
+          />
         ))}
       </div>
     </div>

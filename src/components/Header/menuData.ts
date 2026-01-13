@@ -88,12 +88,6 @@ export const menuData: Menu[] = [
         path: "/cart",
       },
       {
-        id: 66,
-        title: "Favorilerim",
-        newTab: false,
-        path: "/wishlist",
-      },
-      {
         id: 67,
         title: "Giriş Yap",
         newTab: false,
@@ -131,36 +125,5 @@ export const menuData: Menu[] = [
       },
     ],
   },
-  {
-    id: 7,
-    title: "Blog",
-    newTab: false,
-    path: "/",
-    submenu: [
-      {
-        id: 71,
-        title: "Kenarlıklı Blog Listesi",
-        newTab: false,
-        path: "/blogs/blog-grid-with-sidebar",
-      },
-      {
-        id: 72,
-        title: "Blog Listesi",
-        newTab: false,
-        path: "/blogs/blog-grid",
-      },
-      {
-        id: 73,
-        title: "Kenarlıklı Blog Detayı",
-        newTab: false,
-        path: "/blogs/blog-details-with-sidebar",
-      },
-      {
-        id: 74,
-        title: "Blog Detayı",
-        newTab: false,
-        path: "/blogs/blog-details",
-      },
-    ],
-  },
+
 ];

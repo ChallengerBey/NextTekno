@@ -35,45 +35,61 @@ const CartSidebarModal = () => {
     };
   }, [isCartModalOpen, closeCartModal]);
 
+  const shippingGoal = 1000;
+  const remainingForFreeShipping = shippingGoal - totalPrice;
+  const progressPercentage = Math.min((totalPrice / shippingGoal) * 100, 100);
+
   return (
     <div
-      className={`fixed top-0 left-0 z-99999 overflow-y-auto no-scrollbar w-full h-screen bg-dark/70 ease-linear duration-300 ${isCartModalOpen ? "translate-x-0" : "translate-x-full"
+      className={`fixed top-0 left-0 z-99999 overflow-y-auto no-scrollbar w-full h-screen bg-dark/70 ease-linear duration-300 transition-opacity ${isCartModalOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
     >
-      <div className="flex items-center justify-end">
-        <div className="w-full max-w-[500px] shadow-1 bg-white px-4 sm:px-7.5 lg:px-11 relative modal-content">
-          <div className="sticky top-0 bg-white flex items-center justify-between pb-7 pt-4 sm:pt-7.5 lg:pt-11 border-b border-gray-3 mb-7.5">
-            <h2 className="font-medium text-dark text-lg sm:text-2xl">
-              Sepet Görünümü
+      <div className="flex items-center justify-end h-full">
+        <div className={`w-full max-w-[500px] h-full shadow-2xl bg-white px-4 sm:px-7.5 lg:px-11 relative modal-content transition-transform duration-300 transform ${isCartModalOpen ? "translate-x-0" : "translate-x-full"}`}>
+          <div className="sticky top-0 bg-white z-20 flex items-center justify-between pb-7 pt-4 sm:pt-7.5 lg:pt-11 border-b border-gray-3 mb-7.5">
+            <h2 className="font-bold text-dark text-lg sm:text-2xl flex items-center gap-2">
+              Sepetim <span className="text-gray-400 font-normal">({cartItems.length})</span>
             </h2>
             <button
               onClick={() => closeCartModal()}
               aria-label="modali kapat"
-              className="flex items-center justify-center ease-in duration-150 bg-meta text-dark-5 hover:text-dark"
+              className="group flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors"
             >
               <svg
-                className="fill-current"
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path
-                  d="M12.5379 11.2121C12.1718 10.846 11.5782 10.846 11.212 11.2121C10.8459 11.5782 10.8459 12.1718 11.212 12.5379L13.6741 15L11.2121 17.4621C10.846 17.8282 10.846 18.4218 11.2121 18.7879C11.5782 19.154 12.1718 19.154 12.5379 18.7879L15 16.3258L17.462 18.7879C17.8281 19.154 18.4217 19.154 18.7878 18.7879C19.154 18.4218 19.154 17.8282 18.7878 17.462L16.3258 15L18.7879 12.5379C19.154 12.1718 19.154 11.5782 18.7879 11.2121C18.4218 10.846 17.8282 10.846 17.462 11.2121L15 13.6742L12.5379 11.2121Z"
-                  fill=""
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M15 1.5625C7.57867 1.5625 1.5625 7.57867 1.5625 15C1.5625 22.4213 7.57867 28.4375 15 28.4375C22.4213 28.4375 28.4375 22.4213 28.4375 15C28.4375 7.57867 22.4213 1.5625 15 1.5625ZM3.4375 15C3.4375 8.61421 8.61421 3.4375 15 3.4375C21.3858 3.4375 26.5625 8.61421 26.5625 15C26.5625 21.3858 21.3858 26.5625 15 26.5625C8.61421 26.5625 3.4375 21.3858 3.4375 15Z"
-                  fill=""
-                />
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
 
-          <div className="h-[66vh] overflow-y-auto no-scrollbar">
+          {/* Shipping Goal Progress */}
+          {cartItems.length > 0 && (
+            <div className="mb-8 p-4 bg-blue/5 rounded-xl border border-blue/10">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm font-medium text-dark">
+                  {remainingForFreeShipping > 0 ? (
+                    <>Bedava kargo için <span className="text-blue font-bold">₺{remainingForFreeShipping}</span> kaldı!</>
+                  ) : (
+                    <span className="text-green-600 font-bold">Tebrikler! Kargo bizden. 📦✨</span>
+                  )}
+                </p>
+                <span className="text-xs font-bold text-blue">{progressPercentage.toFixed(0)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-500 ease-out rounded-full ${remainingForFreeShipping <= 0 ? 'bg-green-500' : 'bg-blue'}`}
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          <div className="h-[calc(100vh-420px)] overflow-y-auto no-scrollbar pr-2 mb-4">
             <div className="flex flex-col gap-6">
               {/* <!-- cart item --> */}
               {cartItems.length > 0 ? (
@@ -90,27 +106,35 @@ const CartSidebarModal = () => {
             </div>
           </div>
 
-          <div className="border-t border-gray-3 bg-white pt-5 pb-4 sm:pb-7.5 lg:pb-11 mt-7.5 sticky bottom-0">
-            <div className="flex items-center justify-between gap-5 mb-6">
-              <p className="font-medium text-xl text-dark">Ara Toplam:</p>
-
-              <p className="font-medium text-xl text-dark">{"\u20BA"}{totalPrice}</p>
+          <div className="border-t border-gray-3 bg-white pt-6 pb-4 sm:pb-7.5 mt-auto">
+            <div className="flex items-center justify-between gap-5 mb-8">
+              <div>
+                <p className="text-gray-500 text-sm">Ara Toplam</p>
+                <p className="font-bold text-2xl text-dark">₺{totalPrice}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-500 text-sm">Kargo</p>
+                <p className={`font-bold ${remainingForFreeShipping <= 0 ? 'text-green-600' : 'text-dark'}`}>
+                  {remainingForFreeShipping <= 0 ? 'Bedava' : '₺49.90'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-3">
               <Link
+                href="/checkout"
                 onClick={() => closeCartModal()}
-                href="/cart"
-                className="w-full flex justify-center font-medium text-white bg-blue py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-blue-dark"
+                className="w-full flex justify-center items-center font-bold text-white bg-dark py-4 px-6 rounded-xl ease-out duration-300 hover:bg-opacity-95 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
               >
-                Sepeti Gör
+                Güvenli Ödeme Yap
               </Link>
 
               <Link
-                href="/checkout"
-                className="w-full flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
+                onClick={() => closeCartModal()}
+                href="/cart"
+                className="w-full flex justify-center items-center font-medium text-dark bg-gray-100 py-3.5 px-6 rounded-xl ease-out duration-300 hover:bg-gray-200"
               >
-                Ödeme
+                Sepet Detayları
               </Link>
             </div>
           </div>

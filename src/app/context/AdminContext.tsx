@@ -14,6 +14,19 @@ export interface Order {
     items?: any[];
 }
 
+export interface Promo {
+    id: string;
+    badge?: string;
+    title: string;
+    description: string;
+    buttonText: string;
+    buttonUrl: string;
+    style: "blue" | "red" | "dark" | "gradient" | "teal" | "orange";
+    type: "product" | "installment" | "announcement";
+    location: "hero" | "banner";
+    imageUrl?: string;
+}
+
 import { Product } from "@/types/product";
 
 interface AdminContextType {
@@ -26,6 +39,10 @@ interface AdminContextType {
     addProduct: (product: Product) => Promise<void>;
     updateProduct: (product: Product) => Promise<void>;
     deleteProduct: (productId: number | string) => Promise<void>;
+    promos: Promo[];
+    addPromo: (promo: Promo) => void;
+    updatePromo: (promo: Promo) => void;
+    deletePromo: (promoId: string) => void;
     isLoading: boolean;
     refreshData: () => Promise<void>;
 }
@@ -263,8 +280,101 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const [promos, setPromos] = useState<Promo[]>([
+        {
+            id: "1",
+            badge: "30% İndirim",
+            title: "Gürültü Engelleyici Gerçek Kablosuz Kulaklık",
+            description: "Aktif gürültü engelleme özelliği ile müziği tam kalbinde hissedin. Konforlu kullanım ve üstün ses deneyimi.",
+            buttonText: "Şimdi Al",
+            buttonUrl: "/shop",
+            style: "blue",
+            type: "product",
+            location: "hero",
+            imageUrl: "/images/hero/hero-01.png"
+        },
+        {
+            id: "2",
+            badge: "Vade Farksız",
+            title: "Tüm Kredi Kartlarına 12 Taksit Fırsatı!",
+            description: "Teknolojiyi şimdi al, taksit taksit öde. Anlaşmalı bankalarla peşin fiyatına taksit avantajlarını kaçırmayın.",
+            buttonText: "Kampanyaları Gör",
+            buttonUrl: "/shop",
+            style: "gradient",
+            type: "installment",
+            location: "hero"
+        },
+        {
+            id: "3",
+            badge: "Sınırlı Stok",
+            title: "Apple iPhone 14 Plus %30 İndirimle!",
+            description: "Güçlü A15 Bionic çip ve muhteşem kamera sistemiyle iPhone deneyimini zirveye taşıyın.",
+            buttonText: "Fırsatı Yakala",
+            buttonUrl: "/shop",
+            style: "dark",
+            type: "product",
+            location: "banner",
+            imageUrl: "/images/promo/promo-01.png"
+        },
+        {
+            id: "4",
+            badge: "Yeni Gelen",
+            title: "Apple Watch Ultra ile Sınırları Zorlayın",
+            description: "Havacılık sınıfı titanyum kasa ve her türlü zorluğa dayanıklı yapı.",
+            buttonText: "İncele",
+            buttonUrl: "/shop",
+            style: "orange",
+            type: "product",
+            location: "banner",
+            imageUrl: "/images/promo/promo-03.png"
+        }
+    ]);
+
+    const addPromo = (promo: Promo) => {
+        setPromos(prev => [promo, ...prev]);
+        toast.success("Yeni kampanya eklendi!");
+    };
+
+    const updatePromo = (promo: Promo) => {
+        setPromos(prev => prev.map(p => p.id === promo.id ? promo : p));
+        toast.success("Kampanya güncellendi!");
+    };
+
+    const deletePromo = (promoId: string) => {
+        setPromos(prev => prev.filter(p => p.id !== promoId));
+        toast.success("Kampanya kaldırıldı.");
+    };
+
+    // Load/Save promos from localStorage
+    useEffect(() => {
+        const savedPromos = localStorage.getItem("sitePromos");
+        if (savedPromos) {
+            setPromos(JSON.parse(savedPromos));
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem("sitePromos", JSON.stringify(promos));
+    }, [promos]);
+
     return (
-        <AdminContext.Provider value={{ isLoggedIn, login, logout, orders, addOrder, products, addProduct, updateProduct, deleteProduct, isLoading, refreshData }}>
+        <AdminContext.Provider value={{
+            isLoggedIn,
+            login,
+            logout,
+            orders,
+            addOrder,
+            products,
+            addProduct,
+            updateProduct,
+            deleteProduct,
+            promos,
+            addPromo,
+            updatePromo,
+            deletePromo,
+            isLoading,
+            refreshData
+        }}>
             {children}
         </AdminContext.Provider>
     );

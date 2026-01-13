@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import SingleItem from "./SingleItem";
+import ProductItem from "../../Common/ProductItem";
 import Image from "next/image";
 import Link from "next/link";
 import shopData from "@/components/Shop/shopData";
@@ -34,8 +35,8 @@ const BestSeller = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7.5">
           {/* <!-- Best Sellers item --> */}
-          {productList.map((item, key) => (
-            <SingleItem item={item} key={key} />
+          {productList.map((product, key) => (
+            <ProductItem product={product} key={key} />
           ))}
         </div>
 

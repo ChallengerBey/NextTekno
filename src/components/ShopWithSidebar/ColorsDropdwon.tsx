@@ -1,9 +1,8 @@
 "use client";
 import React, { useState } from "react";
 
-const ColorsDropdwon = () => {
+const ColorsDropdwon = ({ selectedColors, onToggleColor }) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
-  const [activeColor, setActiveColor] = useState("blue");
 
   const colors = ["red", "blue", "orange", "pink", "purple"];
 
@@ -38,7 +37,6 @@ const ColorsDropdwon = () => {
         </button>
       </div>
 
-      {/* <!-- dropdown menu --> */}
       <div
         className={`flex-wrap gap-2.5 p-6 ${toggleDropdown ? "flex" : "hidden"
           }`}
@@ -46,19 +44,18 @@ const ColorsDropdwon = () => {
         {colors.map((color, key) => (
           <label
             key={key}
-            htmlFor={color}
             className="cursor-pointer select-none flex items-center"
           >
             <div className="relative">
               <input
-                type="radio"
+                type="checkbox"
                 name="color"
-                id={color}
                 className="sr-only"
-                onChange={() => setActiveColor(color)}
+                checked={selectedColors.includes(color)}
+                onChange={() => onToggleColor(color)}
               />
               <div
-                className={`flex items-center justify-center w-5.5 h-5.5 rounded-full ${activeColor === color && "border"
+                className={`flex items-center justify-center w-5.5 h-5.5 rounded-full ${selectedColors.includes(color) && "border-2"
                   }`}
                 style={{ borderColor: `${color}` }}
               >

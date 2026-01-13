@@ -37,10 +37,10 @@ const RecentlyViewdItems = () => {
                   height={17}
                   alt="icon"
                 />
-                Categories
+                Kategoriler
               </span>
               <h2 className="font-semibold text-xl xl:text-heading-5 text-dark">
-                Browse by Category
+                Son Baktıkların
               </h2>
             </div>
 
@@ -89,9 +89,9 @@ const RecentlyViewdItems = () => {
             spaceBetween={20}
             className="justify-between"
           >
-            {shopData.map((item, key) => (
+            {shopData.map((product, key) => (
               <SwiperSlide key={key}>
-                <ProductItem item={item} />
+                <ProductItem product={product} />
               </SwiperSlide>
             ))}
           </Swiper>

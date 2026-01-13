@@ -8,16 +8,34 @@ const simplify = (value: string) => normalize(value).replace(/[aeiou]/g, "");
 export const matchesProductSearch = (
   product: Product,
   query: string,
-  category?: string | null
+  categories: string[] = [],
+  selectedColors: string[] = [],
+  priceRange: { from: number; to: number } = { from: 0, to: Infinity }
 ) => {
   const trimmedQuery = query.trim();
-  const normalizedCategory = (category ?? "").trim();
 
-  if (normalizedCategory && normalizedCategory !== "all") {
-    const productCategory = product.category ?? "General";
-    if (normalize(productCategory) !== normalize(normalizedCategory)) {
+  // Category filter
+  if (categories.length > 0 && !categories.includes("all")) {
+    const productCategory = product.category ?? "Genel";
+    const matchesCategory = categories.some(
+      (cat) => normalize(cat) === normalize(productCategory)
+    );
+    if (!matchesCategory) {
       return false;
     }
+  }
+
+  // Color filter
+  if (selectedColors.length > 0) {
+    if (product.color && !selectedColors.includes(product.color.toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Price filter
+  const productPrice = product.discountedPrice ?? product.price;
+  if (productPrice < priceRange.from || productPrice > priceRange.to) {
+    return false;
   }
 
   if (!trimmedQuery) {
@@ -31,5 +49,10 @@ export const matchesProductSearch = (
 export const filterProducts = (
   products: Product[],
   query: string,
-  category?: string | null
-) => products.filter((product) => matchesProductSearch(product, query, category));
+  categories: string[] = [],
+  selectedColors: string[] = [],
+  priceRange: { from: number; to: number } = { from: 0, to: Infinity }
+) =>
+  products.filter((product) =>
+    matchesProductSearch(product, query, categories, selectedColors, priceRange)
+  );

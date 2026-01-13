@@ -13,7 +13,10 @@ import CartSidebarModal from "@/components/Common/CartSidebarModal";
 import { PreviewSliderProvider } from "../context/PreviewSliderContext";
 import PreviewSliderModal from "@/components/Common/PreviewSlider";
 import { AdminProvider } from "../context/AdminContext";
+import Breadcrumbs from "@/components/Common/Breadcrumbs";
 
+import { Toaster } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
 
@@ -29,8 +32,9 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html lang="tr" suppressHydrationWarning={true}>
       <body>
+        <Toaster position="top-right" reverseOrder={false} />
         {loading ? (
           <PreLoader />
         ) : (
@@ -41,8 +45,19 @@ export default function RootLayout({
                   <ModalProvider>
                     <PreviewSliderProvider>
                       <Header />
-                      {children}
-
+                      <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0 pt-36 lg:pt-44">
+                        <Breadcrumbs />
+                      </div>
+                      <AnimatePresence mode="wait">
+                        <motion.main
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.4, ease: "easeInOut" }}
+                        >
+                          {children}
+                        </motion.main>
+                      </AnimatePresence>
                       <QuickViewModal />
                       <CartSidebarModal />
                       <PreviewSliderModal />

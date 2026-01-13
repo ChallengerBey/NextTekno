@@ -2,13 +2,8 @@ import { useState } from 'react';
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 
-const PriceDropdown = () => {
+const PriceDropdown = ({ priceRange, onPriceChange }) => {
   const [toggleDropdown, setToggleDropdown] = useState(true);
-
-  const [selectedPrice, setSelectedPrice] = useState({
-    from: 0,
-    to: 100,
-  });
 
   return (
     <div className="bg-white shadow-1 rounded-lg">
@@ -18,7 +13,10 @@ const PriceDropdown = () => {
       >
         <p className="text-dark">Fiyat</p>
         <button
-          onClick={() => setToggleDropdown(!toggleDropdown)}
+          onClick={(e) => {
+            e.preventDefault();
+            setToggleDropdown(!toggleDropdown);
+          }}
           id="price-dropdown-btn"
           aria-label="button for price dropdown"
           className={`text-dark ease-out duration-200 ${toggleDropdown && 'rotate-180'
@@ -42,16 +40,18 @@ const PriceDropdown = () => {
         </button>
       </div>
 
-      {/* // <!-- dropdown menu --> */}
       <div className={`p-6 ${toggleDropdown ? 'block' : 'hidden'}`}>
         <div id="pricingOne">
           <div className="price-range">
             <RangeSlider
               id="range-slider-gradient"
               className="margin-lg"
-              step={'any'}
+              step={1}
+              min={0}
+              max={10000}
+              defaultValue={[priceRange.from, priceRange.to]}
               onInput={(e) =>
-                setSelectedPrice({
+                onPriceChange({
                   from: Math.floor(e[0]),
                   to: Math.ceil(e[1]),
                 })
@@ -64,7 +64,7 @@ const PriceDropdown = () => {
                   ₺
                 </span>
                 <span id="minAmount" className="block px-3 py-1.5">
-                  {selectedPrice.from}
+                  {priceRange.from}
                 </span>
               </div>
 
@@ -73,7 +73,7 @@ const PriceDropdown = () => {
                   ₺
                 </span>
                 <span id="maxAmount" className="block px-3 py-1.5">
-                  {selectedPrice.to}
+                  {priceRange.to}
                 </span>
               </div>
             </div>

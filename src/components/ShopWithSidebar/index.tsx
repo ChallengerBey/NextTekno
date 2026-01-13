@@ -3,8 +3,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import Breadcrumb from "../Common/Breadcrumb";
 import CustomSelect from "./CustomSelect";
 import CategoryDropdown from "./CategoryDropdown";
-import GenderDropdown from "./GenderDropdown";
-import SizeDropdown from "./SizeDropdown";
 import ColorsDropdwon from "./ColorsDropdwon";
 import PriceDropdown from "./PriceDropdown";
 import shopData from "../Shop/shopData";
@@ -22,72 +20,66 @@ const ShopWithSidebar = () => {
   const productList = products.length > 0 ? products : shopData;
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") ?? "";
-  const category = searchParams.get("category") ?? "all";
+  const initialCategory = searchParams.get("category") ?? "all";
+
+  // Filter States
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory !== "all" ? [initialCategory] : []
+  );
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState({ from: 0, to: 10000 });
+
   const filteredProducts = useMemo(
-    () => filterProducts(productList, searchQuery, category),
-    [productList, searchQuery, category]
+    () =>
+      filterProducts(
+        productList,
+        searchQuery,
+        selectedCategories,
+        selectedColors,
+        priceRange
+      ),
+    [productList, searchQuery, selectedCategories, selectedColors, priceRange]
   );
 
-  const handleStickyMenu = () => {
-    if (window.scrollY >= 80) {
-      setStickyMenu(true);
-    } else {
-      setStickyMenu(false);
-    }
+  const dynamicCategories = useMemo(() => {
+    const counts = productList.reduce((acc, product) => {
+      const cat = product.category || "Genel";
+      acc[cat] = (acc[cat] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts).map(([name, count]) => ({
+      name,
+      products: count,
+    }));
+  }, [productList]);
+
+  const handleToggleCategory = (catName: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catName)
+        ? prev.filter((c) => c !== catName)
+        : [...prev, catName]
+    );
+  };
+
+  const handleToggleColor = (color: string) => {
+    setSelectedColors((prev) =>
+      prev.includes(color)
+        ? prev.filter((c) => c !== color)
+        : [...prev, color]
+    );
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCategories([]);
+    setSelectedColors([]);
+    setPriceRange({ from: 0, to: 10000 });
   };
 
   const options = [
     { label: "En Yeniler", value: "0" },
     { label: "Çok Satanlar", value: "1" },
     { label: "Eski Ürünler", value: "2" },
-  ];
-
-  const categories = [
-    {
-      name: "Masaüstü",
-      products: 10,
-      isRefined: true,
-    },
-    {
-      name: "Dizüstü",
-      products: 12,
-      isRefined: false,
-    },
-    {
-      name: "Monitör",
-      products: 30,
-      isRefined: false,
-    },
-    {
-      name: "Güç Kaynağı",
-      products: 23,
-      isRefined: false,
-    },
-    {
-      name: "Telefon",
-      products: 10,
-      isRefined: false,
-    },
-    {
-      name: "Saat",
-      products: 13,
-      isRefined: false,
-    },
-  ];
-
-  const genders = [
-    {
-      name: "Erkek",
-      products: 10,
-    },
-    {
-      name: "Kadın",
-      products: 23,
-    },
-    {
-      name: "Unisex",
-      products: 8,
-    },
   ];
 
   useEffect(() => {
@@ -107,7 +99,15 @@ const ShopWithSidebar = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  });
+  }, [productSidebar]);
+
+  const handleStickyMenu = () => {
+    if (window.scrollY >= 80) {
+      setStickyMenu(true);
+    } else {
+      setStickyMenu(false);
+    }
+  };
 
   return (
     <>
@@ -121,16 +121,16 @@ const ShopWithSidebar = () => {
             {/* <!-- Sidebar Start --> */}
             <div
               className={`sidebar-content fixed xl:z-1 z-9999 left-0 top-0 xl:translate-x-0 xl:static max-w-[310px] xl:max-w-[270px] w-full ease-out duration-200 ${productSidebar
-                  ? "translate-x-0 bg-white p-5 h-screen overflow-y-auto"
-                  : "-translate-x-full"
+                ? "translate-x-0 bg-white p-5 h-screen overflow-y-auto"
+                : "-translate-x-full"
                 }`}
             >
               <button
                 onClick={() => setProductSidebar(!productSidebar)}
                 aria-label="button for product sidebar toggle"
                 className={`xl:hidden absolute -right-12.5 sm:-right-8 flex items-center justify-center w-8 h-8 rounded-md bg-white shadow-1 ${stickyMenu
-                    ? "lg:top-20 sm:top-34.5 top-35"
-                    : "lg:top-24 sm:top-39 top-37"
+                  ? "lg:top-20 sm:top-34.5 top-35"
+                  : "lg:top-24 sm:top-39 top-37"
                   }`}
               >
                 <svg
@@ -162,24 +162,28 @@ const ShopWithSidebar = () => {
                   <div className="bg-white shadow-1 rounded-lg py-4 px-5">
                     <div className="flex items-center justify-between">
                       <p>Filtreler:</p>
-                      <button className="text-blue">Tümünü Temizle</button>
+                      <button onClick={handleClearFilters} className="text-blue">Tümünü Temizle</button>
                     </div>
                   </div>
 
                   {/* <!-- category box --> */}
-                  <CategoryDropdown categories={categories} />
-
-                  {/* <!-- gender box --> */}
-                  <GenderDropdown genders={genders} />
-
-                  {/* // <!-- size box --> */}
-                  <SizeDropdown />
+                  <CategoryDropdown
+                    categories={dynamicCategories}
+                    selectedCategories={selectedCategories}
+                    onToggleCategory={handleToggleCategory}
+                  />
 
                   {/* // <!-- color box --> */}
-                  <ColorsDropdwon />
+                  <ColorsDropdwon
+                    selectedColors={selectedColors}
+                    onToggleColor={handleToggleColor}
+                  />
 
                   {/* // <!-- price range box --> */}
-                  <PriceDropdown />
+                  <PriceDropdown
+                    priceRange={priceRange}
+                    onPriceChange={setPriceRange}
+                  />
                 </div>
               </form>
             </div>
@@ -194,8 +198,8 @@ const ShopWithSidebar = () => {
                     <CustomSelect options={options} />
 
                     <p>
-                      Toplam <span className="text-dark">50</span> üründen{" "}
-                      <span className="text-dark">9</span> tanesi gösteriliyor
+                      Toplam <span className="text-dark">{productList.length}</span> üründen{" "}
+                      <span className="text-dark">{filteredProducts.length}</span> tanesi gösteriliyor
                     </p>
                   </div>
 
@@ -205,8 +209,8 @@ const ShopWithSidebar = () => {
                       onClick={() => setProductStyle("grid")}
                       aria-label="button for product grid tab"
                       className={`${productStyle === "grid"
-                          ? "bg-blue border-blue text-white"
-                          : "text-dark bg-gray-1 border-gray-3"
+                        ? "bg-blue border-blue text-white"
+                        : "text-dark bg-gray-1 border-gray-3"
                         } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
                       <svg
@@ -248,8 +252,8 @@ const ShopWithSidebar = () => {
                       onClick={() => setProductStyle("list")}
                       aria-label="button for product list tab"
                       className={`${productStyle === "list"
-                          ? "bg-blue border-blue text-white"
-                          : "text-dark bg-gray-1 border-gray-3"
+                        ? "bg-blue border-blue text-white"
+                        : "text-dark bg-gray-1 border-gray-3"
                         } flex items-center justify-center w-10.5 h-9 rounded-[5px] border ease-out duration-200 hover:bg-blue hover:border-blue hover:text-white`}
                     >
                       <svg
@@ -281,8 +285,8 @@ const ShopWithSidebar = () => {
               {/* <!-- Products Grid Tab Content Start --> */}
               <div
                 className={`${productStyle === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7.5 gap-y-9"
-                    : "flex flex-col gap-7.5"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7.5 gap-y-9"
+                  : "flex flex-col gap-7.5"
                   }`}
               >
                 {filteredProducts.map((item, key) =>
