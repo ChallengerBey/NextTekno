@@ -1,3 +1,4 @@
+"use client";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -34,8 +35,6 @@ export const metadata: Metadata = {
     canonical: '/kategori/tum-kategoriler',
   },
 };
-
-"use client";
 import React from "react";
 import { getAllCategories } from "@/lib/database";
 import HepsiburadaHeader from "@/components/Home/HepsiburadaStyle/HepsiburadaHeader";
