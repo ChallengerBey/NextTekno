@@ -343,7 +343,7 @@ const Footer = () => {
         <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex gap-5 flex-wrap items-center justify-between">
             <p className="text-dark font-medium">
-              &copy; {year}. Tüm hakları Semih Ergili'ye aittir.
+              &copy; {year}. Tüm hakları  Ergili'ye aittir.
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
